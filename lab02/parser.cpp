@@ -93,9 +93,22 @@ void Parser::InitializeTable(){
 }
 
 void Parser::InitializeSymbolsString(){
+		/*STACK_EXPR,
+		STACK_LIST,
+		STACK_LIST2,
+		STACK_MEMBERS,
+		STACK_MEMBERS2,
+		STACK_ATOM,
+		STACK_ID,
+		STACK_NUM,
+		STACK_FLOAT,
+		STACK_STR,
+		STACK_OP,
+		STACK_O_PARENTHESIS,
+		STACK_C_PARENTHESIS,
+		STACK_BOTTOM*/
 	StackSymbolsString = {
 		"<expr>",
-		"<list>",
 		"<list>",
 		"<list2>",
 		"<members>",
@@ -143,8 +156,8 @@ void Parser::Parsing(){
 		/*nonterminal case*/
 		else if (top != STACK_BOTTOM){
 			int production = table[top][TokenToColumn(&token)];
-			std::cout<<"Production "<<production<<" for "<< StackSymbolsString[top] << ":" << std::endl;
 			if (production > 0){
+				std::cout<<"Production "<<production<<" for "<< StackSymbolsString[top] << ":" << std::endl;
 				for (auto it : grammar){
 					if (it.getNumber() == production){
 						std::cout<<StackSymbolsString[top]<<" -> ";

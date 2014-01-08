@@ -72,7 +72,7 @@ Token NumberScanner::getToken(){
 	}
 	if(NextState == S_END){
 		if (State == S_INT){
-			return Token(code->getStrNum(), CLASS_INTEGER, token, STACK_NUM);
+			return Token(code->getStrNum(), CLASS_NUM, token, STACK_NUM);
 		} else {
 			return Token(code->getStrNum(), CLASS_FLOAT, token, STACK_FLOAT);
 		}

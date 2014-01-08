@@ -5,6 +5,7 @@ Parser::Parser(FlowOfTokens* tokens){
 	InitializeStack();
 	InitializeProductions();
 	InitializeTable();
+	InitializeSymbolsString();
 }
 
 void Parser::InitializeStack(){
@@ -91,21 +92,31 @@ void Parser::InitializeTable(){
 	};
 }
 
-void Parser::PrintProductions(){
-	for (auto it : grammar){
-		for (auto it2 : it){
-			std::cout<<it2<<"\t";
-		}
-		std::cout<<std::endl;
-	}
+void Parser::InitializeSymbolsString(){
+	StackSymbolsString = {[STACK_EXPR] = "<expr>";
+	StackSymbolsString[STACK_LIST] = "<list>";
+	StackSymbolsString[STACK_LIST] = "<list>";
+	StackSymbolsString[STACK_LIST2] = "<list2>";
+	StackSymbolsString[STACK_MEMBERS] = "<members>";
+	StackSymbolsString[STACK_MEMBERS2] = "<members2>";
+	StackSymbolsString[STACK_ATOM] = "<atom>";
+	StackSymbolsString[STACK_ID] = "ID";
+	StackSymbolsString[STACK_NUM] = "NUM";
+	StackSymbolsString[STACK_FLOAT] = "FLOAT";
+	StackSymbolsString[STACK_STR] = "STR";
+	StackSymbolsString[STACK_OP] = "OP";
+	StackSymbolsString[STACK_O_PARENTHESIS] = "(";
+	StackSymbolsString[STACK_C_PARENTHESIS] = ")";
+	StackSymbolsString[STACK_BOTTOM] = "BOTTOM";
 }
 
 void Parser::Parsing(){
-	while (!tokens->isEnd()){
+	std::cout<<"Hello Fat!"<<std::endl;
+	while (!tokens->IsEnd()){
 		Token token;
 		token = tokens->showToken();
 		std::cout<<"Current token: "<<token.getValue()<<std::endl;
-		if (token.getClassNum()== CLASS_ERROR){
+		if (token.getClassNumber()== CLASS_ERROR){
 			std::cout<<"Error: wrong token";
 			return;
 		}
@@ -121,37 +132,63 @@ void Parser::Parsing(){
 				}
 				tokens->getToken();
 			} else {
-				std::cout<<"Error: wrong token \'"<<token.getValue()<<"\' on string# "<<token.getStringNum()<<std::endl;
+				std::cout<<"Error: wrong token \'"<<token.getValue()<<"\' on string# "<<token.getStringNumber()<<std::endl;
 				return;
 			}
 		} else if (top != STACK_BOTTOM){
-			int production = table[top][tokenToColumn(&token)];
-			std::cout<<"Production "<<production<<" for "<< stackSymbolsString[top] << ":" << std::endl;
-			if ((production > 0) && (production < 33)){
-				for (auto it : productionsList){
-					if (it.getNumber() == production){
-						std::cout<<stackSymbolsString[top]<<" -> ";
-						for (auto it2 : it){
-							std::cout<<stackSymbolsString[it2]<<" ";
-						}
-						std::cout<<std::endl;
-						stack.pop();
-						std::vector<int>::reverse_iterator it2;
-						for (it2 = it.rbegin(); it2!= it.rend(); it2++){
-							stack.push(*it2);
-						}
-						break;
+			int production = table[top][TokenToColumn(&token)];
+			std::cout<<"Production "<<production<<" for "<< StackSymbolsString[top] << ":" << std::endl;
+			for (auto it : grammar){
+				if (it.getNumber() == production){
+					std::cout<<StackSymbolsString[top]<<" -> ";
+					for (auto it2 : it){
+						std::cout<<StackSymbolsString[it2]<<" ";
 					}
-				}
-			} else {
-				if (parsingTable[top][EMPTY] != 0){
-					std::cout<<"Nullify production for "<< stackSymbolsString[top] <<std::endl;
+					std::cout<<std::endl;
 					stack.pop();
-				} else {
-					std::cout<<"String has NOT passed the validation!!! (no production)";
-					return;
+					std::vector<int>::reverse_iterator it2;
+					for (it2 = it.rbegin(); it2!= it.rend(); it2++){
+						stack.push(*it2);
+					}
+					break;
 				}
+			}
+			if (table[top][COLUMN_EMPTY] != 0){
+				std::cout<<"Nullify production for "<< StackSymbolsString[top] <<std::endl;
+				stack.pop();
+			} else {
+				std::cout<<"Error: no production";
+				return;
 			}
 		}
 	}
+}
+
+int Parser::TokenToColumn(Token *token){
+	/*ID	NUM	FLOAT	STR	OP	(	)	𝜀*/
+	switch (token->getClassNumber()) {
+		case CLASS_IDENTIFICATOR : {
+			return COLUMN_ID;
+		}
+		case CLASS_NUM : {
+			return COLUMN_NUM;
+		}
+		case CLASS_FLOAT : {
+			return COLUMN_FLOAT;
+		}
+		case CLASS_STRING : {
+			return COLUMN_STR;
+		}
+		case CLASS_OPERATION : {
+			return COLUMN_OP;
+		}
+		case CLASS_PARENTHESIS : {
+			if (token->getSubClassNumber() == PARENTHESIS_OPENING){
+				return COLUMN_O_PARENTHESIS;
+			} else {
+				return COLUMN_C_PARENTHESIS;
+			}
+		}
+	}
+	return -1;
 }

@@ -52,6 +52,6 @@ int main(){
 	/*      Lexeme scanning output */
 
 	Parser parser(&TokensFlow);
-	parser.PrintProductions();
+	parser.Parsing();
 }
 

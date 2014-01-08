@@ -93,25 +93,26 @@ void Parser::InitializeTable(){
 }
 
 void Parser::InitializeSymbolsString(){
-	StackSymbolsString = {[STACK_EXPR] = "<expr>";
-	StackSymbolsString[STACK_LIST] = "<list>";
-	StackSymbolsString[STACK_LIST] = "<list>";
-	StackSymbolsString[STACK_LIST2] = "<list2>";
-	StackSymbolsString[STACK_MEMBERS] = "<members>";
-	StackSymbolsString[STACK_MEMBERS2] = "<members2>";
-	StackSymbolsString[STACK_ATOM] = "<atom>";
-	StackSymbolsString[STACK_ID] = "ID";
-	StackSymbolsString[STACK_NUM] = "NUM";
-	StackSymbolsString[STACK_FLOAT] = "FLOAT";
-	StackSymbolsString[STACK_STR] = "STR";
-	StackSymbolsString[STACK_OP] = "OP";
-	StackSymbolsString[STACK_O_PARENTHESIS] = "(";
-	StackSymbolsString[STACK_C_PARENTHESIS] = ")";
-	StackSymbolsString[STACK_BOTTOM] = "BOTTOM";
+	StackSymbolsString = {
+		"<expr>",
+		"<list>",
+		"<list>",
+		"<list2>",
+		"<members>",
+		"<members2>",
+		"<atom>",
+		"ID",
+		"NUM",
+		"FLOAT",
+		"STR",
+		"OP",
+		"(",
+		")",
+		"BOTTOM"
+	};
 }
 
 void Parser::Parsing(){
-	std::cout<<"Hello Fat!"<<std::endl;
 	while (!tokens->IsEnd()){
 		Token token;
 		token = tokens->showToken();
@@ -121,7 +122,8 @@ void Parser::Parsing(){
 			return;
 		}
 		int top = stack.top();
-		std::cout<<"Stack top: "<<top<<std::endl;
+		std::cout<<"Stack top: "<<StackSymbolsString[top]<<std::endl;
+		/*terminal case*/
 		if (top > STACK_ATOM){
 			if (top == token.getStackSymbol()){
 				stack.pop();
@@ -135,32 +137,40 @@ void Parser::Parsing(){
 				std::cout<<"Error: wrong token \'"<<token.getValue()<<"\' on string# "<<token.getStringNumber()<<std::endl;
 				return;
 			}
-		} else if (top != STACK_BOTTOM){
+		}
+		/*terminal case*/
+
+		/*nonterminal case*/
+		else if (top != STACK_BOTTOM){
 			int production = table[top][TokenToColumn(&token)];
 			std::cout<<"Production "<<production<<" for "<< StackSymbolsString[top] << ":" << std::endl;
-			for (auto it : grammar){
-				if (it.getNumber() == production){
-					std::cout<<StackSymbolsString[top]<<" -> ";
-					for (auto it2 : it){
-						std::cout<<StackSymbolsString[it2]<<" ";
+			if (production > 0){
+				for (auto it : grammar){
+					if (it.getNumber() == production){
+						std::cout<<StackSymbolsString[top]<<" -> ";
+						for (auto it2 : it){
+							std::cout<<StackSymbolsString[it2]<<" ";
+						}
+						std::cout<<std::endl;
+						stack.pop();
+						std::vector<int>::reverse_iterator it2;
+						for (it2 = it.rbegin(); it2!= it.rend(); it2++){
+							stack.push(*it2);
+						}
+						break;
 					}
-					std::cout<<std::endl;
+				}
+			} else {
+				if (table[top][COLUMN_EMPTY] != 0){
+					std::cout<<"Nullify production for "<<StackSymbolsString[top] <<std::endl;
 					stack.pop();
-					std::vector<int>::reverse_iterator it2;
-					for (it2 = it.rbegin(); it2!= it.rend(); it2++){
-						stack.push(*it2);
-					}
-					break;
+				} else {
+					std::cout<<"Error: no production"<<std::endl;
+					return;
 				}
 			}
-			if (table[top][COLUMN_EMPTY] != 0){
-				std::cout<<"Nullify production for "<< StackSymbolsString[top] <<std::endl;
-				stack.pop();
-			} else {
-				std::cout<<"Error: no production";
-				return;
-			}
 		}
+		/*nonterminal case*/
 	}
 }
 

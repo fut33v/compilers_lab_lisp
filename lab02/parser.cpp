@@ -129,35 +129,32 @@ void Parser::Parsing(){
 	while (!tokens->IsEnd()){
 		Token token;
 		token = tokens->showToken();
-		std::cout<<"Current token: "<<token.getValue()<<std::endl;
+		std::cout<<"Токен: "<<token.getValue()<<std::endl;
 		if (token.getClassNumber()== CLASS_ERROR){
-			std::cout<<"Error: wrong token";
+			std::cout<<"Ошибка: неверный токен"<<std::endl;
 			return;
 		}
 		int top = stack.top();
 		std::cout<<"Stack top: "<<StackSymbolsString[top]<<std::endl;
-		/*terminal case*/
+
+		/*На вершине стека терминал*/
 		if (top > STACK_ATOM){
 			if (top == token.getStackSymbol()){
 				stack.pop();
-				std::cout<<"Token \'"<<token.getValue()<<"\' deleted"<<std::endl;
-				if (stack.top() == STACK_BOTTOM){
-					std::cout<<"Passed!!!"<<std::endl;
-					return;
-				}
+				std::cout<<"Токен \'"<<token.getValue()<<"\' был удалён"<<std::endl;
 				tokens->getToken();
 			} else {
-				std::cout<<"Error: wrong token \'"<<token.getValue()<<"\' on string# "<<token.getStringNumber()<<std::endl;
+				std::cout<<"Ошибка: неправильный токен \'"<<token.getValue()<<"\' на строке № "<<token.getStringNumber()<<std::endl;
 				return;
 			}
 		}
-		/*terminal case*/
+		/*На вершине стека терминал*/
 
-		/*nonterminal case*/
+		/*На вершине стека нетерминал*/
 		else if (top != STACK_BOTTOM){
 			int production = table[top][TokenToColumn(&token)];
 			if (production > 0){
-				std::cout<<"Production "<<production<<" for "<< StackSymbolsString[top] << ":" << std::endl;
+				std::cout<<"Правило № "<<production<<" для "<< StackSymbolsString[top] << ":" << std::endl;
 				for (auto it : grammar){
 					if (it.getNumber() == production){
 						std::cout<<StackSymbolsString[top]<<" -> ";
@@ -175,16 +172,25 @@ void Parser::Parsing(){
 				}
 			} else {
 				if (table[top][COLUMN_EMPTY] != 0){
-					std::cout<<"Nullify production for "<<StackSymbolsString[top] <<std::endl;
+					std::cout<<"Аннулирующее правило для "<<StackSymbolsString[top] <<std::endl;
 					stack.pop();
 				} else {
-					std::cout<<"Error: no production"<<std::endl;
+					std::cout<<"Ошибка: правила не найдено"<<std::endl;
 					return;
 				}
 			}
 		}
-		/*nonterminal case*/
+		/*На вершине стека нетерминал*/
 	}
+	std::cout<<"___________________"<<std::endl;
+	if (stack.top() != STACK_BOTTOM){
+		std::cout<<"Ошибка: строка не прошла валидацию"<<std::endl
+		<<"(На вершине стека на момент окончания потока токенов остался не маркер дна)"<<std::endl;
+	} else {
+		std::cout<<"Cтрока прошла валидацию"<<std::endl
+		<<"(На вершине стека на момент окончания потока токенов остался маркер дна)"<<std::endl;
+	}
+	std::cout<<"___________________"<<std::endl;
 }
 
 int Parser::TokenToColumn(Token *token){
